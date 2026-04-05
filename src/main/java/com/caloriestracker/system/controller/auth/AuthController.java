@@ -4,7 +4,6 @@ import com.caloriestracker.system.dto.request.auth.LoginRequest;
 import com.caloriestracker.system.dto.request.auth.RegisterRequest;
 import com.caloriestracker.system.dto.response.auth.AuthResponse;
 import com.caloriestracker.system.service.auth.AuthService;
-import com.caloriestracker.system.util.AuthUtils;
 
 import jakarta.validation.Valid;
 
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-    private final AuthUtils authUtils;
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponse> register(
@@ -44,6 +42,4 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-
-
 }

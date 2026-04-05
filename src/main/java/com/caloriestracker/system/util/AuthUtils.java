@@ -1,6 +1,8 @@
 package com.caloriestracker.system.util;
 
 import com.caloriestracker.system.entity.User;
+import com.caloriestracker.system.exception.ResourceNotFoundException;
+import com.caloriestracker.system.exception.UnauthorizedException;
 import com.caloriestracker.system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -16,20 +18,20 @@ public class AuthUtils {
     public Long getUserId(Authentication auth) {
 
         if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("Unauthenticated");
+            throw new UnauthorizedException("Unauthenticated");
         }
 
         Object principal = auth.getPrincipal();
 
         if (!(principal instanceof UserDetails userDetails)) {
-            throw new RuntimeException("Invalid principal");
+            throw new UnauthorizedException("Invalid authentication principal");
         }
 
-        String username = userDetails.getUsername(); // ← ده username مش email
+        String username = userDetails.getUsername();
 
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
 
         return user.getId();

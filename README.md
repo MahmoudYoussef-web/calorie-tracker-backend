@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Calories Tracker Backend (AI-based) built with Spring Boot & MySQL
 
 This project is a production-ready backend system for tracking daily calorie intake, meals, and nutrition using Spring Boot. It includes AI-based food analysis, meal tracking, and personalized calorie recommendations.
@@ -244,3 +245,5 @@ This project helped me:
 Mahmoud
 Backend Developer (Spring Boot)
 
+=======
+>>>>>>> eeae120 (feat: complete AI module + update meal, auth, and dashboard logic)

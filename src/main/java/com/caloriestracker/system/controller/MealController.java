@@ -35,8 +35,9 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mealService.createMeal(userId, request));
+        MealResponse response = mealService.createMeal(userId, request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{mealId}/items")
@@ -48,9 +49,25 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                mealService.addItem(userId, mealId, request)
-        );
+        MealResponse response =
+                mealService.addItem(userId, mealId, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{mealId}/items/manual")
+    public ResponseEntity<MealResponse> addManualItem(
+            @PathVariable Long mealId,
+            @Valid @RequestBody ManualMealItemRequest request,
+            Authentication authentication
+    ) {
+
+        Long userId = authUtils.getUserId(authentication);
+
+        MealResponse response =
+                mealService.addManualItem(userId, mealId, request);
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/items/{itemId}")
@@ -62,9 +79,10 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                mealService.updateItem(userId, itemId, request)
-        );
+        MealResponse response =
+                mealService.updateItem(userId, itemId, request);
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/items/{itemId}")
@@ -88,9 +106,10 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                mealService.getMeal(userId, mealId)
-        );
+        MealResponse response =
+                mealService.getMeal(userId, mealId);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/by-date")
@@ -103,9 +122,10 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                mealService.getMealsByDate(userId, date)
-        );
+        List<MealResponse> response =
+                mealService.getMealsByDate(userId, date);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/daily-calories")
@@ -118,24 +138,12 @@ public class MealController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                mealService.getDailyCalories(
-                        userId,
-                        date != null ? date : LocalDate.now()
-                )
-        );
-    }
-    @PostMapping("/{mealId}/items/manual")
-    public ResponseEntity<MealResponse> addManualItem(
-            @PathVariable Long mealId,
-            @Valid @RequestBody ManualMealItemRequest request,
-            Authentication authentication
-    ) {
+        LocalDate targetDate =
+                date != null ? date : LocalDate.now();
 
-        Long userId = authUtils.getUserId(authentication);
+        Double response =
+                mealService.getDailyCalories(userId, targetDate);
 
-        return ResponseEntity.ok(
-                mealService.addManualItem(userId, mealId, request)
-        );
+        return ResponseEntity.ok(response);
     }
 }

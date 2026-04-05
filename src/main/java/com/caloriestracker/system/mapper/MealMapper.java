@@ -31,6 +31,13 @@ public class MealMapper {
 
     private MealItemResponse toItemResponse(MealItem item) {
 
+        if (item.getFood() == null) {
+            return MealItemResponse.builder()
+                    .quantity(item.getQuantity())
+                    .calories(item.getCaloriesAtTime())
+                    .build();
+        }
+
         return MealItemResponse.builder()
                 .foodId(item.getFood().getId())
                 .foodName(item.getFood().getName())

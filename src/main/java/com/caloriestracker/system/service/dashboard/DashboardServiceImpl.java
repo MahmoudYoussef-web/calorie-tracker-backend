@@ -6,7 +6,7 @@ import com.caloriestracker.system.entity.*;
 import com.caloriestracker.system.exception.ResourceNotFoundException;
 import com.caloriestracker.system.repository.*;
 import com.caloriestracker.system.service.common.CalculationService;
-
+import org.springframework.transaction.annotation.Propagation;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -27,10 +27,10 @@ public class DashboardServiceImpl implements DashboardService {
     private final CalculationService calculationService;
     private final UserDeficitRepository deficitRepo;
 
-    @Override
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public DailyDashboardResponse getDaily(Long userId, LocalDate date) {
 
-        UserProfile profile = profileRepo.findByUserId(userId)
+        UserProfile profile = profileRepo.findByUser_Id(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Profile not found")
                 );
@@ -47,8 +47,14 @@ public class DashboardServiceImpl implements DashboardService {
                 profile.getActivityLevel()
         );
 
-        double target = deficitRepo.findByUserId(userId)
-                .map(UserDeficit::getTargetCalories)
+        double target = deficitRepo.findByUser_Id(userId)
+                .map(d -> d.getTargetCalories() != null
+                                ? d.getTargetCalories()
+                                : calculationService.calculateTargetCalories(
+                                tdee,
+                                profile.getGoal()
+                        )
+                )
                 .orElse(
                         calculationService.calculateTargetCalories(
                                 tdee,
@@ -74,7 +80,7 @@ public class DashboardServiceImpl implements DashboardService {
 
         double remaining = target - consumed;
 
-        String status = remaining >= 0 ? "UNDER" : "OVER";
+        String status = consumed > target ? "EXCEEDED" : "ON_TRACK";
 
         return new DailyDashboardResponse(
                 date,

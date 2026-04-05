@@ -14,6 +14,19 @@ public class UserProfileMapper {
 
     public UserProfileResponse toResponse(UserProfile p) {
 
+        if (p == null
+                || p.getGender() == null
+                || p.getAge() == null
+                || p.getHeightCm() == null
+                || p.getWeightKg() == null
+                || p.getGoal() == null
+                || p.getActivityLevel() == null) {
+
+            return UserProfileResponse.builder()
+                    .id(p != null ? p.getId() : null)
+                    .build();
+        }
+
         double bmr = calculationService.calculateBmr(
                 p.getGender(),
                 p.getAge(),

@@ -61,21 +61,30 @@ public class UserProfileServiceImpl implements UserProfileService {
         profile.setGoal(request.getGoal());
         profile.setActivityLevel(request.getActivityLevel());
 
-        profileRepo.save(profile);
+        UserProfile saved = profileRepo.save(profile);
 
-        return profileMapper.toResponse(profile);
+        return profileMapper.toResponse(saved);
     }
 
     private void validate(UserProfileRequest r) {
 
-        if (r.getHeightCm() < 50 || r.getHeightCm() > 250)
+        if (r.getHeightCm() == null || r.getHeightCm() < 50 || r.getHeightCm() > 250)
             throw new BadRequestException("Invalid height");
 
-        if (r.getWeightKg() < 20 || r.getWeightKg() > 300)
+        if (r.getWeightKg() == null || r.getWeightKg() < 20 || r.getWeightKg() > 300)
             throw new BadRequestException("Invalid weight");
 
-        if (r.getAge() < 1 || r.getAge() > 120)
+        if (r.getAge() == null || r.getAge() < 1 || r.getAge() > 120)
             throw new BadRequestException("Invalid age");
+
+        if (r.getGender() == null)
+            throw new BadRequestException("Gender is required");
+
+        if (r.getGoal() == null)
+            throw new BadRequestException("Goal is required");
+
+        if (r.getActivityLevel() == null)
+            throw new BadRequestException("Activity level is required");
     }
 
     @Override
@@ -92,25 +101,21 @@ public class UserProfileServiceImpl implements UserProfileService {
                         new ResourceNotFoundException("Profile not found")
                 );
 
-        double daily =
-                profileMapper.toResponse(profile).getDailyCalories();
+        UserProfileResponse profileResponse =
+                profileMapper.toResponse(profile);
 
         return new UserFullProfileResponse(
                 user.getId(),
-
-                // full name
                 user.getFirstName() + " " + user.getLastName(),
-
                 user.getEmail(),
                 user.getCreatedAt(),
-
                 profile.getGender(),
                 profile.getAge(),
                 profile.getHeightCm(),
                 profile.getWeightKg(),
                 profile.getGoal(),
                 profile.getActivityLevel(),
-                daily
+                profileResponse.getDailyCalories()
         );
     }
 }

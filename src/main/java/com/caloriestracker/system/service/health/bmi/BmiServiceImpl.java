@@ -2,13 +2,27 @@ package com.caloriestracker.system.service.health.bmi;
 
 import com.caloriestracker.system.dto.request.health.BmiRequest;
 import com.caloriestracker.system.dto.response.health.BmiResponse;
+import com.caloriestracker.system.exception.BadRequestException;
+import com.caloriestracker.system.service.common.CalculationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class BmiServiceImpl implements BmiService {
+
+    private final CalculationService calculationService;
 
     @Override
     public BmiResponse calculate(BmiRequest request) {
+
+        if (request.getHeightCm() == null || request.getHeightCm() <= 0) {
+            throw new BadRequestException("Invalid height");
+        }
+
+        if (request.getWeightKg() == null || request.getWeightKg() <= 0) {
+            throw new BadRequestException("Invalid weight");
+        }
 
         double heightM = request.getHeightCm() / 100.0;
 
@@ -28,37 +42,24 @@ public class BmiServiceImpl implements BmiService {
             category = "Obese";
         }
 
-        double bmr;
+        double bmr = calculationService.calculateBmr(
+                request.getGender(),
+                request.getAge(),
+                request.getHeightCm(),
+                request.getWeightKg()
+        );
 
-        if (request.getGender().name().equals("MALE")) {
-            bmr = 10 * request.getWeightKg()
-                    + 6.25 * request.getHeightCm()
-                    - 5 * request.getAge()
-                    + 5;
-        } else {
-            bmr = 10 * request.getWeightKg()
-                    + 6.25 * request.getHeightCm()
-                    - 5 * request.getAge()
-                    - 161;
-        }
-
-        double multiplier = switch (request.getActivityLevel()) {
-            case SEDENTARY -> 1.2;
-            case LIGHT -> 1.375;
-            case MODERATE -> 1.55;
-            case ACTIVE -> 1.725;
-            case VERY_ACTIVE -> 1.9;
-        };
-
-        double dailyCalories = bmr * multiplier;
+        double tdee = calculationService.calculateTdee(
+                bmr,
+                request.getActivityLevel()
+        );
 
         BmiResponse response = new BmiResponse();
 
         response.setBmi(Math.round(bmi * 100.0) / 100.0);
         response.setCategory(category);
-
         response.setDailyCalories(
-                (double) Math.round(dailyCalories)
+                (double) Math.round(tdee)
         );
 
         return response;

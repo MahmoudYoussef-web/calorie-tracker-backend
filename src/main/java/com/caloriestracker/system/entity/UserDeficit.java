@@ -20,6 +20,9 @@ public class UserDeficit {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @Column(name = "user_id", insertable = false, updatable = false)
+    private Long userId;
+
     private Double maintenanceCalories;
 
     private Double deficitCalories;

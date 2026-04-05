@@ -22,7 +22,6 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final AuthUtils authUtils;
 
-    // GET FULL PROFILE (Account + Health)
     @GetMapping
     public ResponseEntity<UserFullProfileResponse> getProfile(
             Authentication authentication
@@ -30,12 +29,16 @@ public class UserProfileController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                userProfileService.getFullProfile(userId)
-        );
+        UserFullProfileResponse response =
+                userProfileService.getFullProfile(userId);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(response);
     }
 
-    // UPDATE HEALTH DATA
     @PutMapping
     public ResponseEntity<UserProfileResponse> updateProfile(
             @Valid @RequestBody UserProfileRequest request,
@@ -44,9 +47,9 @@ public class UserProfileController {
 
         Long userId = authUtils.getUserId(authentication);
 
-        return ResponseEntity.ok(
-                userProfileService.updateProfile(userId, request)
-        );
-    }
+        UserProfileResponse response =
+                userProfileService.updateProfile(userId, request);
 
+        return ResponseEntity.ok(response);
+    }
 }

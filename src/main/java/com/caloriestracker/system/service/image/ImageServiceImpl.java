@@ -10,11 +10,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ImageServiceImpl implements ImageService {
-
 
     private final ImageRepository imageRepo;
 
@@ -37,8 +40,6 @@ public class ImageServiceImpl implements ImageService {
                 );
 
         image.setFavorite(!image.isFavorite());
-
-        imageRepo.save(image);
     }
 
     @Override
@@ -49,6 +50,16 @@ public class ImageServiceImpl implements ImageService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Image not found")
                 );
+
+        try {
+            Path path = Paths.get(image.getPath());
+
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
+
+        } catch (Exception ignored) {
+        }
 
         imageRepo.delete(image);
     }
@@ -63,7 +74,7 @@ public class ImageServiceImpl implements ImageService {
         response.setStatus(image.getStatus());
         response.setFavorite(image.isFavorite());
 
-        if (image.getMealItem() != null) {
+        if (image.getMealItem() != null && image.getMealItem().getId() != null) {
             response.setMealItemId(image.getMealItem().getId());
         }
 

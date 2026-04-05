@@ -4,7 +4,6 @@ import com.caloriestracker.system.enums.ActivityLevel;
 import com.caloriestracker.system.enums.Gender;
 import com.caloriestracker.system.enums.Goal;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.caloriestracker.system.enums.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -14,7 +13,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "user_profiles",
-        indexes = @Index(name = "idx_profile_user", columnList = "user_id")
+        indexes = @Index(name = "idx_profile_user", columnList = "user_id"),
+        uniqueConstraints = @UniqueConstraint(name = "uk_profile_user", columnNames = "user_id")
 )
 @Getter
 @Setter
@@ -28,7 +28,7 @@ public class UserProfile {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @JsonIgnore
     private User user;
@@ -39,14 +39,17 @@ public class UserProfile {
 
     @Min(1)
     @Max(120)
+    @Column(nullable = false)
     private Integer age;
 
     @DecimalMin("50.0")
     @DecimalMax("250.0")
+    @Column(nullable = false)
     private Double heightCm;
 
     @DecimalMin("20.0")
     @DecimalMax("300.0")
+    @Column(nullable = false)
     private Double weightKg;
 
     @Enumerated(EnumType.STRING)

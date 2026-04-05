@@ -4,32 +4,30 @@ import com.caloriestracker.system.dto.request.deficit.CalorieDeficitRequest;
 import com.caloriestracker.system.entity.User;
 import com.caloriestracker.system.entity.UserDeficit;
 import com.caloriestracker.system.entity.UserProfile;
+import com.caloriestracker.system.exception.BadRequestException;
 import com.caloriestracker.system.exception.ResourceNotFoundException;
 import com.caloriestracker.system.repository.UserDeficitRepository;
 import com.caloriestracker.system.repository.UserProfileRepository;
 import com.caloriestracker.system.repository.UserRepository;
 import com.caloriestracker.system.service.common.CalculationService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class DeficitServiceImpl implements DeficitService {
 
-    @PersistenceContext
-    private EntityManager em;
     private final UserRepository userRepo;
     private final UserProfileRepository profileRepo;
     private final UserDeficitRepository deficitRepo;
     private final CalculationService calculationService;
 
     @Override
-    public void setDeficit(Long userId,
-                           CalorieDeficitRequest request) {
+    public void setDeficit(Long userId, CalorieDeficitRequest request) {
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() ->
@@ -41,7 +39,14 @@ public class DeficitServiceImpl implements DeficitService {
                         new ResourceNotFoundException("Profile not found")
                 );
 
-        // Calculate maintenance (TDEE)
+        Integer deficitInput = request.getDeficit();
+
+        if (deficitInput == null || deficitInput < 0 || deficitInput > 1500) {
+            throw new BadRequestException("Invalid deficit value");
+        }
+
+        double deficitValue = deficitInput.doubleValue();
+
         double bmr = calculationService.calculateBmr(
                 profile.getGender(),
                 profile.getAge(),
@@ -54,12 +59,25 @@ public class DeficitServiceImpl implements DeficitService {
                 profile.getActivityLevel()
         );
 
-        double deficitValue = request.getDeficit().doubleValue();
+        double targetCalories = tdee - deficitValue;
+
+        if (targetCalories < 0) {
+            throw new BadRequestException("Deficit too high");
+        }
 
         UserDeficit deficit = deficitRepo
-                .findByUserId(userId)
-                .orElse(UserDeficit.builder()
-                        .user(user)
-                        .build());
+                .findByUser_Id(userId)
+                .orElse(null);
+
+        if (deficit == null) {
+            deficit = new UserDeficit();
+            deficit.setUser(user);
+        }
+
+        deficit.setMaintenanceCalories(tdee);
+        deficit.setDeficitCalories(deficitValue);
+        deficit.setTargetCalories(targetCalories);
+
+        deficitRepo.saveAndFlush(deficit);
     }
 }

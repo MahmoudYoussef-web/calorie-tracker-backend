@@ -66,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Username or email is required");
         }
 
-        String identifier = rawIdentifier.trim();
+        String identifier = rawIdentifier.trim().toLowerCase();
 
         User user = userRepo
                 .findByEmailOrUsername(identifier, identifier)

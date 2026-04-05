@@ -17,7 +17,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException ex,
@@ -42,7 +41,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    // All custom API exceptions
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiErrorResponse> handleApiException(
             ApiException ex,
@@ -62,7 +60,6 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    // Fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleAll(
             Exception ex,

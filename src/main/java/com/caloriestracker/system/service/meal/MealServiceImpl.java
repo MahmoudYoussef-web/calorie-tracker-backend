@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -52,32 +53,22 @@ public class MealServiceImpl implements MealService {
                 .user(user)
                 .build();
 
-        mealRepo.save(meal);
-
-        return mealMapper.toResponse(meal);
+        return mealMapper.toResponse(mealRepo.save(meal));
     }
 
     @Override
     @Transactional
-    public MealResponse addItem(
-            Long userId,
-            Long mealId,
-            AddMealItemRequest request
-    ) {
+    public MealResponse addItem(Long userId, Long mealId, AddMealItemRequest request) {
 
         validateQuantity(request.getQuantity());
 
         Meal meal = mealRepo.findById(mealId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Meal not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Meal not found"));
 
         checkAccess(meal, userId);
 
         Food food = foodRepo.findById(request.getFoodId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Food not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Food not found"));
 
         MealItem item = buildItem(meal, food, request.getQuantity());
 
@@ -90,36 +81,23 @@ public class MealServiceImpl implements MealService {
 
     @Override
     @Transactional
-    public MealResponse updateItem(
-            Long userId,
-            Long itemId,
-            AddMealItemRequest request
-    ) {
+    public MealResponse updateItem(Long userId, Long itemId, AddMealItemRequest request) {
 
         validateQuantity(request.getQuantity());
 
         MealItem item = itemRepo
                 .findByIdAndMeal_User_Id(itemId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Item not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
 
         Food food = foodRepo.findById(request.getFoodId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Food not found")
-                );
-
-        double calories =
-                food.getCalories() * request.getQuantity();
+                .orElseThrow(() -> new ResourceNotFoundException("Food not found"));
 
         item.setFood(food);
         item.setQuantity(request.getQuantity());
-        item.setCaloriesAtTime(calories);
-        item.setProteinAtTime(food.getProtein());
-        item.setCarbsAtTime(food.getCarbs());
-        item.setFatAtTime(food.getFat());
-
-        itemRepo.save(item);
+        item.setCaloriesAtTime(food.getCalories() * request.getQuantity());
+        item.setProteinAtTime(food.getProtein() * request.getQuantity());
+        item.setCarbsAtTime(food.getCarbs() * request.getQuantity());
+        item.setFatAtTime(food.getFat() * request.getQuantity());
 
         updateSummary(item.getMeal());
 
@@ -132,12 +110,11 @@ public class MealServiceImpl implements MealService {
 
         MealItem item = itemRepo
                 .findByIdAndMeal_User_Id(itemId, userId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Item not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
 
         Meal meal = item.getMeal();
 
+        meal.getItems().remove(item);
         itemRepo.delete(item);
 
         updateSummary(meal);
@@ -148,9 +125,7 @@ public class MealServiceImpl implements MealService {
     public MealResponse getMeal(Long userId, Long mealId) {
 
         Meal meal = mealRepo.findById(mealId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Meal not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Meal not found"));
 
         checkAccess(meal, userId);
 
@@ -159,15 +134,10 @@ public class MealServiceImpl implements MealService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MealResponse> getMealsByDate(
-            Long userId,
-            LocalDate date
-    ) {
+    public List<MealResponse> getMealsByDate(Long userId, LocalDate date) {
 
-        List<Meal> meals =
-                mealRepo.findByUser_IdAndMealDate(userId, date);
-
-        return meals.stream()
+        return mealRepo.findByUser_IdAndMealDate(userId, date)
+                .stream()
                 .map(mealMapper::toResponse)
                 .toList();
     }
@@ -176,52 +146,39 @@ public class MealServiceImpl implements MealService {
     @Transactional(readOnly = true)
     public Double getDailyCalories(Long userId, LocalDate date) {
 
-        List<Meal> meals =
-                mealRepo.findByUser_IdAndMealDate(userId, date);
-
-        return meals.stream()
-                .flatMap(m -> m.getItems().stream())
-                .mapToDouble(i ->
-                        i.getCaloriesAtTime() == null
-                                ? 0.0
-                                : i.getCaloriesAtTime()
-                )
+        return mealRepo.findByUser_IdAndMealDate(userId, date)
+                .stream()
+                .flatMap(m -> m.getItems() == null ? Stream.empty() : m.getItems().stream())
+                .mapToDouble(i -> i.getCaloriesAtTime() == null ? 0.0 : i.getCaloriesAtTime())
                 .sum();
     }
 
-    /* ================= Helpers ================= */
-
     private void validateQuantity(Double q) {
-
         if (q == null || q <= 0) {
             throw new BadRequestException("Invalid quantity");
         }
     }
 
     private void checkAccess(Meal meal, Long userId) {
-
         if (!meal.getUser().getId().equals(userId)) {
             throw new BadRequestException("Access denied");
         }
     }
 
-    private MealItem buildItem(
-            Meal meal,
-            Food food,
-            Double quantity
-    ) {
+    private MealItem buildItem(Meal meal, Food food, Double quantity) {
 
-        double calories = food.getCalories() * quantity;
-
-        return MealItem.builder()
-                .meal(meal)
+        MealItem item = MealItem.builder()
                 .food(food)
                 .quantity(quantity)
-                .caloriesAtTime(calories)
-                .proteinAtTime(food.getProtein())
-                .carbsAtTime(food.getCarbs())
-                .fatAtTime(food.getFat())
+                .caloriesAtTime(food.getCalories() * quantity)
+                .proteinAtTime(food.getProtein() * quantity)
+                .carbsAtTime(food.getCarbs() * quantity)
+                .fatAtTime(food.getFat() * quantity)
                 .build();
+
+        meal.addItem(item);
+
+        return item;
     }
 
     private void updateSummary(Meal meal) {
@@ -232,12 +189,8 @@ public class MealServiceImpl implements MealService {
         double consumed = mealRepo
                 .findByUser_IdAndMealDate(userId, date)
                 .stream()
-                .flatMap(m -> m.getItems().stream())
-                .mapToDouble(i ->
-                        i.getCaloriesAtTime() == null
-                                ? 0.0
-                                : i.getCaloriesAtTime()
-                )
+                .flatMap(m -> m.getItems() == null ? Stream.empty() : m.getItems().stream())
+                .mapToDouble(i -> i.getCaloriesAtTime() == null ? 0.0 : i.getCaloriesAtTime())
                 .sum();
 
         DailySummary summary = summaryRepo
@@ -257,50 +210,40 @@ public class MealServiceImpl implements MealService {
 
         summaryRepo.save(summary);
     }
+
     @Override
     @Transactional
-    public MealResponse addManualItem(
-            Long userId,
-            Long mealId,
-            ManualMealItemRequest request
-    ) {
+    public MealResponse addManualItem(Long userId, Long mealId, ManualMealItemRequest request) {
 
         validateQuantity(request.getQuantity());
 
         Meal meal = mealRepo.findById(mealId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Meal not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Meal not found"));
 
         checkAccess(meal, userId);
 
         Food food = foodRepo.findByNameIgnoreCase(request.getName())
-                .orElseGet(() -> {
-
-                    Food newFood = Food.builder()
-                            .name(request.getName())
-                            .calories(request.getCalories())
-                            .protein(request.getProtein())
-                            .carbs(request.getCarbs())
-                            .fat(request.getFat())
-                            .build();
-
-                    return foodRepo.save(newFood);
-                });
-
-        double calories =
-                request.getCalories() * request.getQuantity();
+                .orElseGet(() -> foodRepo.save(
+                        Food.builder()
+                                .name(request.getName())
+                                .calories(request.getCalories())
+                                .protein(request.getProtein())
+                                .carbs(request.getCarbs())
+                                .fat(request.getFat())
+                                .build()
+                ));
 
         MealItem item = MealItem.builder()
-                .meal(meal)
                 .food(food)
                 .quantity(request.getQuantity())
-                .caloriesAtTime(calories)
-                .proteinAtTime(request.getProtein())
-                .carbsAtTime(request.getCarbs())
-                .fatAtTime(request.getFat())
+                .caloriesAtTime(request.getCalories() * request.getQuantity())
+                .proteinAtTime(request.getProtein() * request.getQuantity())
+                .carbsAtTime(request.getCarbs() * request.getQuantity())
+                .fatAtTime(request.getFat() * request.getQuantity())
                 .confidence(1.0)
                 .build();
+
+        meal.addItem(item);
 
         itemRepo.save(item);
 

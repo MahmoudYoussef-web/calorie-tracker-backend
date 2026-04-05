@@ -1,4 +1,5 @@
 package com.caloriestracker.system.service.security;
+
 import com.caloriestracker.system.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -16,20 +17,22 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration-ms:86400000}") // default 24h
+    @Value("${jwt.expiration-ms:86400000}")
     private long expiration;
 
     private Key key;
 
-
     @PostConstruct
     private void init() {
+
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters long");
+        }
 
         this.key = Keys.hmacShaKeyFor(
                 secret.getBytes(StandardCharsets.UTF_8)
         );
     }
-
 
     @Override
     public String generate(User user) {
@@ -38,7 +41,7 @@ public class JwtServiceImpl implements JwtService {
         Date expiry = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-                .setSubject(user.getId().toString())
+                .setSubject(String.valueOf(user.getId()))
                 .claim("username", user.getUsername())
                 .setIssuedAt(now)
                 .setExpiration(expiry)
@@ -46,15 +49,17 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
-
     @Override
     public Long extractUserId(String token) {
 
         Claims claims = parse(token);
 
-        return Long.valueOf(claims.getSubject());
+        try {
+            return Long.valueOf(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new JwtException("Invalid token subject");
+        }
     }
-
 
     @Override
     public boolean validate(String token) {
@@ -62,21 +67,10 @@ public class JwtServiceImpl implements JwtService {
         try {
             parse(token);
             return true;
-
-        } catch (ExpiredJwtException e) {
-            return false;
-
-        } catch (MalformedJwtException e) {
-            return false;
-
-        } catch (UnsupportedJwtException e) {
-            return false;
-
-        } catch (IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
-
 
     private Claims parse(String token) {
 
