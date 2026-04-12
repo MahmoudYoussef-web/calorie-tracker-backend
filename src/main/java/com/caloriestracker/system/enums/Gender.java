@@ -18,7 +18,6 @@ public enum Gender {
     public int getBmrOffset() {
         return bmrOffset;
     }
-    // ===== JSON Mapping =====
 
     @JsonValue
     public String getLabel() {

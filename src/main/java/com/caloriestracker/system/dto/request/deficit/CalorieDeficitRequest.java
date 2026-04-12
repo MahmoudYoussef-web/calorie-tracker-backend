@@ -9,7 +9,7 @@ import lombok.Data;
 public class CalorieDeficitRequest {
 
     @NotNull
-    @Min(0)
-    @Max(1500)
+    @Min(value = 0, message = "Deficit should be greater than 0")
+    @Max(value = 1500, message = "Deficit should be less than 1500")
     private Integer deficit;
 }

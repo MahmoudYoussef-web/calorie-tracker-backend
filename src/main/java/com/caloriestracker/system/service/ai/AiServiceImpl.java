@@ -35,7 +35,7 @@ public class AiServiceImpl implements AiService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    // ================= ANALYZE =================
+
 
     @Override
     @Transactional
@@ -62,7 +62,7 @@ public class AiServiceImpl implements AiService {
             throw new RuntimeException("Upload failed");
         }
 
-        // Save Image
+
         Image image = Image.builder()
                 .path(path.toString())
                 .status(ImageStatus.PROCESSING)
@@ -104,7 +104,7 @@ public class AiServiceImpl implements AiService {
         return response;
     }
 
-    // ================= ASYNC =================
+
 
     @Async
     @Override
@@ -133,7 +133,7 @@ public class AiServiceImpl implements AiService {
                             )
                     );
 
-            // Update MealItem
+
             item.setFood(food);
             item.setQuantity(result.getQuantity());
 
@@ -158,7 +158,6 @@ public class AiServiceImpl implements AiService {
         imageRepo.save(image);
     }
 
-    // ================= RETRY =================
 
     @Override
     @Transactional
@@ -179,7 +178,7 @@ public class AiServiceImpl implements AiService {
         processAsync(image.getId(), null);
     }
 
-    // ================= STATUS =================
+
 
     @Override
     @Transactional(readOnly = true)
@@ -193,7 +192,7 @@ public class AiServiceImpl implements AiService {
         return image.getStatus();
     }
 
-    // ================= SUMMARY =================
+
 
     private void updateSummary(Meal meal) {
 

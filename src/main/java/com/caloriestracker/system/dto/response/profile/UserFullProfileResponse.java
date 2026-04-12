@@ -14,12 +14,12 @@ public class UserFullProfileResponse {
 
     private Long id;
 
-    // Account
+
     private String fullName;
     private String email;
     private LocalDateTime joinedAt;
 
-    // Health
+
     private Gender gender;
     private Integer age;
     private Double heightCm;

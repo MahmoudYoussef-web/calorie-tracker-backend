@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface MealRepository extends JpaRepository<Meal, Long> {
 
-    // Weekly progress
+
     @Query("""
         SELECT new com.caloriestracker.system.dto.response.dashboard.CaloriesProgressResponse(
             m.mealDate,
@@ -34,13 +34,13 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
             @Param("end") LocalDate end
     );
 
-    // ✅ Daily meals
+
     List<Meal> findByUser_IdAndMealDate(
             Long userId,
             LocalDate mealDate
     );
 
-    // Unique meal check
+
     Optional<Meal> findByUser_IdAndMealDateAndMealType(
             Long userId,
             LocalDate mealDate,

@@ -9,7 +9,7 @@ public enum ImageStatus {
     DONE,
     FAILED,
     CANCELLED;
-    // ===== JSON Mapping =====
+
 
     @JsonValue
     public String getLabel() {

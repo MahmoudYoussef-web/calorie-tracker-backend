@@ -26,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthMapper authMapper;
 
-    // ================= REGISTER =================
+
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
         return buildResponse(user);
     }
 
-    // ================= LOGIN =================
+
 
     @Override
     public AuthResponse login(LoginRequest request) {
@@ -81,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
         return buildResponse(user);
     }
 
-    // ================= HELPER =================
+
 
     private AuthResponse buildResponse(User user) {
 

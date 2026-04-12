@@ -19,7 +19,7 @@ public enum Goal {
     public int getCalorieOffset() {
         return calorieOffset;
     }
-    // ===== JSON Mapping =====
+
 
     @JsonValue
     public String getLabel() {

@@ -12,6 +12,6 @@ public class CreateMealRequest {
     @NotNull
     private LocalDate date;
 
-    @NotNull
+    @NotNull(message = "Please enter meal type!")
     private MealType mealType;
 }

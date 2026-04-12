@@ -11,6 +11,6 @@ public class AddMealItemRequest {
     private Long foodId;
 
     @NotNull
-    @DecimalMin("0.1")
+    @DecimalMin(value = "0.1", message = "Quantity should be more than 100g")
     private Double quantity;
 }

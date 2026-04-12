@@ -61,7 +61,7 @@ public class Image {
     @JsonIgnore
     private MealItem mealItem;
 
-    // Security
+
     private Long fileSize;
     private String mimeType;
 }

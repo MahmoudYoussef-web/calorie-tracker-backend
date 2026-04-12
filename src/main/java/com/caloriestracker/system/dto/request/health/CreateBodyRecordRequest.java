@@ -7,8 +7,8 @@ import lombok.Data;
 @Data
 public class CreateBodyRecordRequest {
 
-    @DecimalMin("20.0")
-    @DecimalMax("300.0")
+    @DecimalMin("5.0")
+    @DecimalMax("200.0")
     private Double weightKg;
 
     @DecimalMin("50.0")
