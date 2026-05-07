@@ -9,7 +9,6 @@ public class MockAiClient implements AiClient {
     @Override
     public AiResult analyze(MultipartFile file) {
 
-        // Fake AI (Temporary)
         return new AiResult(
                 "Apple",
                 52.0,

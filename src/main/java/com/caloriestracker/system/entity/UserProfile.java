@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,20 +38,21 @@ public class UserProfile {
     @Column(nullable = false)
     private Gender gender;
 
-    @Min(1)
-    @Max(120)
+    @Min(1) @Max(120)
     @Column(nullable = false)
     private Integer age;
 
-    @DecimalMin("50.0")
-    @DecimalMax("250.0")
+    @DecimalMin("50.0") @DecimalMax("250.0")
     @Column(nullable = false)
     private Double heightCm;
 
-    @DecimalMin("20.0")
-    @DecimalMax("300.0")
+    @DecimalMin("20.0") @DecimalMax("300.0")
     @Column(nullable = false)
     private Double weightKg;
+
+    @DecimalMin("20.0") @DecimalMax("300.0")
+    @Column
+    private Double targetWeightKg;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -59,6 +61,20 @@ public class UserProfile {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ActivityLevel activityLevel;
+
+    @Min(0) @Max(7)
+    @Column
+    private Integer weeklyExerciseDays;
+
+    @Column(length = 100)
+    private String preferredExercise;
+
+    @Min(0)
+    @Column
+    private Integer workoutDuration;
+
+    @Column
+    private LocalDate exerciseWeekStartDate;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

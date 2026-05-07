@@ -1,4 +1,4 @@
-package com.caloriestracker.system.controller;
+package com.caloriestracker.system.controller.food;
 
 import com.caloriestracker.system.dto.response.food.FoodResponse;
 import com.caloriestracker.system.service.food.FoodService;

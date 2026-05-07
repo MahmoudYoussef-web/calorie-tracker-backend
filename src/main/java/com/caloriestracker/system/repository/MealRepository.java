@@ -2,7 +2,6 @@ package com.caloriestracker.system.repository;
 
 import com.caloriestracker.system.dto.response.dashboard.CaloriesProgressResponse;
 import com.caloriestracker.system.entity.Meal;
-import com.caloriestracker.system.entity.MealItem;
 import com.caloriestracker.system.enums.MealType;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MealRepository extends JpaRepository<Meal, Long> {
-
 
     @Query("""
         SELECT new com.caloriestracker.system.dto.response.dashboard.CaloriesProgressResponse(
@@ -34,12 +32,10 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
             @Param("end") LocalDate end
     );
 
-
     List<Meal> findByUser_IdAndMealDate(
             Long userId,
             LocalDate mealDate
     );
-
 
     Optional<Meal> findByUser_IdAndMealDateAndMealType(
             Long userId,
@@ -47,5 +43,19 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
             MealType mealType
     );
 
+    @Query("SELECT MIN(m.mealDate) FROM Meal m WHERE m.user.id = :userId")
+    Optional<LocalDate> findEarliestMealDateByUserId(@Param("userId") Long userId);
 
+    @Query("""
+        SELECT DISTINCT m.mealDate
+        FROM Meal m
+        WHERE m.user.id = :userId
+          AND m.mealDate BETWEEN :start AND :end
+        ORDER BY m.mealDate
+    """)
+    List<LocalDate> findDistinctMealDatesByUserIdAndDateBetween(
+            @Param("userId") Long userId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
 }

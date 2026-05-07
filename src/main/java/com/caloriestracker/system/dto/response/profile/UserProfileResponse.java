@@ -21,9 +21,14 @@ public class UserProfileResponse {
 
     private Double heightCm;
     private Double weightKg;
+    private Double targetWeightKg;
 
     private Goal goal;
     private ActivityLevel activityLevel;
 
     private Double dailyCalories;
+
+    private Integer weeklyExerciseDays;
+    private String preferredExercise;
+    private Integer workoutDuration;
 }

@@ -28,4 +28,7 @@ public class UserDeficit {
     private Double deficitCalories;
 
     private Double targetCalories;
+
+
+    private Double weightLossPaceKgPerWeek;
 }

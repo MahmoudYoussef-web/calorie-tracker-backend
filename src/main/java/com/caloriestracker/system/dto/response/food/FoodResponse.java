@@ -16,8 +16,11 @@ public class FoodResponse {
     private String name;
 
     private Double calories;
+
     private Double protein;
+
     private Double carbs;
+
     private Double fat;
 
     private String imageUrl;

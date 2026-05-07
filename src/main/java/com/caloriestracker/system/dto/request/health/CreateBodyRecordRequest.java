@@ -7,11 +7,11 @@ import lombok.Data;
 @Data
 public class CreateBodyRecordRequest {
 
-    @DecimalMin("5.0")
-    @DecimalMax("200.0")
+    @DecimalMin(value = "5.0", message = "User weight should be at least 5 kg")
+    @DecimalMax(value = "200.0", message = "User weight should be at most 200 kg")
     private Double weightKg;
 
-    @DecimalMin("50.0")
-    @DecimalMax("250.0")
+    @DecimalMin(value = "5.0", message = "User weight should be at least 5 kg")
+    @DecimalMax(value = "200.0", message = "User weight should be at most 200 kg")
     private Double heightCm;
 }

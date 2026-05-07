@@ -21,7 +21,6 @@ public enum ActivityLevel {
         return factor;
     }
 
-
     @JsonValue
     public String getLabel() {
         return name().toLowerCase();

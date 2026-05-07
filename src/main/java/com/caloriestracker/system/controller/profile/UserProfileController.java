@@ -1,4 +1,4 @@
-package com.caloriestracker.system.controller;
+package com.caloriestracker.system.controller.profile;
 
 import com.caloriestracker.system.dto.request.profile.UserProfileRequest;
 import com.caloriestracker.system.dto.response.profile.UserFullProfileResponse;

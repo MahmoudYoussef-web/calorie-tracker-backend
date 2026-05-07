@@ -1,4 +1,4 @@
-package com.caloriestracker.system.controller;
+package com.caloriestracker.system.controller.food;
 
 import com.caloriestracker.system.dto.request.meal.AddMealItemRequest;
 import com.caloriestracker.system.dto.request.meal.CreateMealRequest;

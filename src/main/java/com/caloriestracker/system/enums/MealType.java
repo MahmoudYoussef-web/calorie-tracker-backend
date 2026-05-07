@@ -19,7 +19,6 @@ public enum MealType {
     public int getOrder() {
         return order;
     }
-    //  JSON Mapping
 
     @JsonValue
     public String getLabel() {

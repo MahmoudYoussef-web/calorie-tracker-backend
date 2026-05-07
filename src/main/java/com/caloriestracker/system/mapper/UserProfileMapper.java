@@ -48,9 +48,13 @@ public class UserProfileMapper {
                 .age(p.getAge())
                 .heightCm(p.getHeightCm())
                 .weightKg(p.getWeightKg())
+                .targetWeightKg(p.getTargetWeightKg())
                 .goal(p.getGoal())
                 .activityLevel(p.getActivityLevel())
                 .dailyCalories(daily)
+                .weeklyExerciseDays(p.getWeeklyExerciseDays())
+                .preferredExercise(p.getPreferredExercise())
+                .workoutDuration(p.getWorkoutDuration())
                 .build();
     }
 }
