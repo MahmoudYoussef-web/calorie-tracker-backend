@@ -13,4 +13,7 @@ public interface AiService {
     void retry(Long imageId);
 
     ImageStatus getStatus(Long imageId);
+
+
+    AiAnalyzeResponse getResult(Long imageId);
 }

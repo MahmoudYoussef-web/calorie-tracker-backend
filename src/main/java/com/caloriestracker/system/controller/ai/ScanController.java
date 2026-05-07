@@ -48,6 +48,13 @@ public class ScanController {
         );
     }
 
+    @GetMapping("/result/{imageId}")
+    public ResponseEntity<AiAnalyzeResponse> getResult(
+            @PathVariable Long imageId
+    ) {
+        return ResponseEntity.ok(aiService.getResult(imageId));
+    }
+
     @GetMapping("/gallery")
     public ResponseEntity<Page<ImageResponse>> getGallery(
             Authentication auth,

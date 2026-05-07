@@ -35,6 +35,8 @@ public class AiServiceImpl implements AiService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
+    // اسم الـ Food المؤقتة اللي بنحطها كـ placeholder
+    private static final String PROCESSING_FOOD_NAME = "__PROCESSING__";
 
 
     @Override
@@ -62,7 +64,6 @@ public class AiServiceImpl implements AiService {
             throw new RuntimeException("Upload failed");
         }
 
-
         Image image = Image.builder()
                 .path(path.toString())
                 .status(ImageStatus.PROCESSING)
@@ -73,17 +74,18 @@ public class AiServiceImpl implements AiService {
 
         imageRepo.save(image);
 
+        Food placeholderFood = getOrCreatePlaceholderFood();
+
         // Create Placeholder MealItem
         MealItem item = MealItem.builder()
                 .meal(meal)
                 .image(image)
+                .food(placeholderFood)
                 .quantity(1.0)
-
                 .caloriesAtTime(0.0)
                 .proteinAtTime(0.0)
                 .carbsAtTime(0.0)
                 .fatAtTime(0.0)
-
                 .confidence(0.0)
                 .build();
 
@@ -96,14 +98,12 @@ public class AiServiceImpl implements AiService {
         processAsync(image.getId(), file);
 
         AiAnalyzeResponse response = new AiAnalyzeResponse();
-
         response.setImageId(image.getId());
         response.setMealItemId(item.getId());
         response.setStatus(ImageStatus.PROCESSING);
 
         return response;
     }
-
 
 
     @Async
@@ -120,6 +120,11 @@ public class AiServiceImpl implements AiService {
 
             AiResult result = visionProvider.analyze(file);
 
+            if (result.getName() == null || result.getName().isBlank()
+                    || result.getName().equalsIgnoreCase(PROCESSING_FOOD_NAME)) {
+                throw new RuntimeException("AI returned invalid food name");
+            }
+
             Food food = foodRepo.findByNameIgnoreCase(result.getName())
                     .orElseGet(() ->
                             foodRepo.save(
@@ -133,15 +138,12 @@ public class AiServiceImpl implements AiService {
                             )
                     );
 
-
             item.setFood(food);
-            item.setQuantity(result.getQuantity());
-
+            item.setQuantity(result.getQuantity() > 0 ? result.getQuantity() : 1.0);
             item.setCaloriesAtTime(result.getCalories());
             item.setProteinAtTime(food.getProtein());
             item.setCarbsAtTime(food.getCarbs());
             item.setFatAtTime(food.getFat());
-
             item.setConfidence(result.getConfidence());
 
             itemRepo.save(item);
@@ -151,11 +153,26 @@ public class AiServiceImpl implements AiService {
             image.setStatus(ImageStatus.DONE);
 
         } catch (Exception e) {
-
             image.setStatus(ImageStatus.FAILED);
         }
 
         imageRepo.save(image);
+    }
+
+
+    private Food getOrCreatePlaceholderFood() {
+        return foodRepo.findByNameIgnoreCase(PROCESSING_FOOD_NAME)
+                .orElseGet(() ->
+                        foodRepo.save(
+                                Food.builder()
+                                        .name(PROCESSING_FOOD_NAME)
+                                        .calories(0.0)
+                                        .protein(0.0)
+                                        .carbs(0.0)
+                                        .fat(0.0)
+                                        .build()
+                        )
+                );
     }
 
 
@@ -179,7 +196,6 @@ public class AiServiceImpl implements AiService {
     }
 
 
-
     @Override
     @Transactional(readOnly = true)
     public ImageStatus getStatus(Long imageId) {
@@ -191,7 +207,6 @@ public class AiServiceImpl implements AiService {
 
         return image.getStatus();
     }
-
 
 
     private void updateSummary(Meal meal) {
@@ -222,6 +237,40 @@ public class AiServiceImpl implements AiService {
         summary.setDate(date);
         summary.setConsumedCalories(consumed);
 
+        if (summary.getTargetCalories() == null) {
+            summary.setTargetCalories(2000.0);
+        }
+
         summaryRepo.save(summary);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AiAnalyzeResponse getResult(Long imageId) {
+
+        Image image = imageRepo.findById(imageId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Image not found")
+                );
+
+        MealItem item = image.getMealItem();
+
+        AiAnalyzeResponse response = new AiAnalyzeResponse();
+        response.setImageId(imageId);
+        response.setStatus(image.getStatus());
+
+        if (item != null) {
+            response.setMealItemId(item.getId());
+            response.setQuantity(item.getQuantity());
+            response.setCalories(item.getCaloriesAtTime());
+            response.setConfidence(item.getConfidence());
+
+            Food food = item.getFood();
+            if (food != null && !food.getName().equals("__PROCESSING__")) {
+                response.setFoodName(food.getName());
+            }
+        }
+
+        return response;
     }
 }

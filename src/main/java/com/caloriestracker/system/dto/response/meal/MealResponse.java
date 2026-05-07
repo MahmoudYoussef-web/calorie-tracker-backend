@@ -1,6 +1,7 @@
 package com.caloriestracker.system.dto.response.meal;
 
 import com.caloriestracker.system.enums.MealType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
