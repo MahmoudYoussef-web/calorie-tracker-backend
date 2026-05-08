@@ -1,11 +1,12 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=32&pause=1000&color=22C55E&center=true&vCenter=true&width=700&lines=CalCounter+Backend;AI-Powered+Calorie+Tracking+System;Spring+Boot+%7C+AI+Vision+%7C+Async+Processing" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=32&pause=1000&color=22C55E&center=true&vCenter=true&width=700&lines=CalCounter+Backend;AI-Powered+Calorie+Tracking+System;Spring+Boot+%7C+Flutter+%7C+AI+Vision+%7C+Async+Processing" alt="Typing SVG" />
 
 <br/>
 
 **Production-ready REST API for intelligent nutrition tracking with AI-powered food recognition.**  
-Upload a meal photo — let the AI identify the food, calculate calories, and log it automatically.
+Upload a meal photo — let the AI identify the food, calculate calories, and log it automatically.  
+Paired with a full **Flutter mobile & web frontend** for a complete end-to-end experience.
 
 <br/>
 
@@ -14,6 +15,8 @@ Upload a meal photo — let the AI identify the food, calculate calories, and lo
 ![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
 ![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat-square&logo=firebase&logoColor=black)
 ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat-square&logo=swagger&logoColor=black)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white)
 
@@ -22,6 +25,18 @@ Upload a meal photo — let the AI identify the food, calculate calories, and lo
 [![AI](https://img.shields.io/badge/AI-EfficientNetB3_Food101-purple?style=flat-square)](https://github.com/MahmoudYoussef-web)
 
 </div>
+
+---
+
+## 🚀 Live Demo
+
+| Layer | URL |
+|---|---|
+| 🌐 **Flutter Web App** | [calcounter-rec.web.app](https://calcounter-rec.web.app/) |
+| 🔌 **Backend API (Render)** | [calorie-tracker-backend-ybji.onrender.com](https://calorie-tracker-backend-ybji.onrender.com) |
+| 📄 **Swagger UI** | [/swagger-ui/index.html](https://calorie-tracker-backend-ybji.onrender.com/swagger-ui/index.html) |
+
+> ⚠️ The backend is hosted on Render's free tier — the first request may take ~30s to wake the instance.
 
 ---
 
@@ -41,7 +56,7 @@ Upload a meal photo — let the AI identify the food, calculate calories, and lo
 
 ## 🌐 Overview
 
-**CalCounter** is a health & nutrition tracking backend that solves the hardest problem in calorie tracking — making it effortless. Instead of manually searching food databases, users simply photograph their meal. An **EfficientNetB3 AI model** identifies the food, estimates its weight, and calculates calories — all asynchronously in the background.
+**CalCounter** is a full-stack health & nutrition tracking application that solves the hardest problem in calorie tracking — making it effortless. Instead of manually searching food databases, users simply photograph their meal. An **EfficientNetB3 AI model** identifies the food, estimates its weight, and calculates calories — all asynchronously in the background. A **Flutter frontend** (web + mobile) consumes this API and delivers the full experience to end users.
 
 ### What sets this apart from a typical CRUD API?
 
@@ -53,6 +68,7 @@ Upload a meal photo — let the AI identify the food, calculate calories, and lo
 | Retry on AI failure | **Retry endpoint** reads image from disk, re-sends to AI |
 | Calorie goal varies per person | **Mifflin-St Jeor formula** calculates personal daily target |
 | Tracking consistency across meals | **DailySummary auto-updated** on every meal change |
+| Cross-platform user experience | **Flutter frontend** deployed on Firebase — runs on web & mobile |
 
 ---
 
@@ -60,7 +76,7 @@ Upload a meal photo — let the AI identify the food, calculate calories, and lo
 
 ```mermaid
 graph TD
-    Client([Frontend App]) --> API[Spring Boot REST API :8080]
+    Client([Flutter App — Web / Mobile]) --> API[Spring Boot REST API :8080]
 
     subgraph Security Layer
         API --> JWT[JWT Auth Filter]
@@ -244,6 +260,9 @@ All endpoints prefixed with `/api` · Full interactive docs at `/swagger-ui/inde
 | Docs | SpringDoc OpenAPI 3 | Swagger UI |
 | Build | Maven | Dependency management |
 | Utilities | Lombok | Boilerplate reduction |
+| **Frontend** | **Flutter** | **Cross-platform web & mobile UI** |
+| **Hosting (FE)** | **Firebase Hosting** | **Flutter web deployment** |
+| **Hosting (BE)** | **Render** | **Backend deployment** |
 
 ---
 
@@ -312,5 +331,5 @@ open http://localhost:8080/swagger-ui/index.html
 ---
 
 <div align="center">
-  <sub>Built  as a graduation project · Open to international opportunities</sub>
+  <sub>Built as a graduation project · Open to international opportunities</sub>
 </div>
