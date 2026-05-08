@@ -224,7 +224,7 @@ All endpoints prefixed with `/api` · Full interactive docs at `/swagger-ui/inde
 ## 🗄️ Database Schema
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2c4fa224-dc90-4ef3-bf22-2077c4a460c7" width="750"/>
+  <img src="https://github.com/user-attachments/assets/4a1646ad-9494-4137-ba2c-11454b9bf4e3" width="750"/>
 </p>
 
 ---
