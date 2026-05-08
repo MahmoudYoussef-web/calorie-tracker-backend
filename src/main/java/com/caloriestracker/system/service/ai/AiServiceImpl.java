@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.caloriestracker.system.util.ByteArrayMultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public class AiServiceImpl implements AiService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    // اسم الـ Food المؤقتة اللي بنحطها كـ placeholder
+
     private static final String PROCESSING_FOOD_NAME = "__PROCESSING__";
 
 
@@ -181,9 +181,7 @@ public class AiServiceImpl implements AiService {
     public void retry(Long imageId) {
 
         Image image = imageRepo.findById(imageId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Image not found")
-                );
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
 
         if (image.getStatus() != ImageStatus.FAILED) {
             throw new BadRequestException("Not failed image");
@@ -192,7 +190,20 @@ public class AiServiceImpl implements AiService {
         image.setStatus(ImageStatus.PROCESSING);
         imageRepo.save(image);
 
-        processAsync(image.getId(), null);
+        MultipartFile fileToRetry = null;
+        try {
+            Path savedPath = Paths.get(image.getPath());
+            if (Files.exists(savedPath)) {
+                byte[] bytes = Files.readAllBytes(savedPath);
+                String filename = savedPath.getFileName().toString();
+                String contentType = image.getMimeType() != null ? image.getMimeType() : "image/jpeg";
+                fileToRetry = new ByteArrayMultipartFile(bytes, filename, contentType);
+            }
+        } catch (IOException e) {
+
+        }
+
+        processAsync(image.getId(), fileToRetry);
     }
 
 

@@ -1,249 +1,316 @@
-<<<<<<< HEAD
-# Calories Tracker Backend (AI-based) built with Spring Boot & MySQL
+<div align="center">
 
-This project is a production-ready backend system for tracking daily calorie intake, meals, and nutrition using Spring Boot. It includes AI-based food analysis, meal tracking, and personalized calorie recommendations.
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=32&pause=1000&color=22C55E&center=true&vCenter=true&width=700&lines=CalCounter+Backend;AI-Powered+Calorie+Tracking+System;Spring+Boot+%7C+AI+Vision+%7C+Async+Processing" alt="Typing SVG" />
 
-The goal of this project was to build a real-world health tracking system with clean architecture, scalable APIs, and intelligent features like image-based food recognition.
+<br/>
 
----
+**Production-ready REST API for intelligent nutrition tracking with AI-powered food recognition.**  
+Upload a meal photo — let the AI identify the food, calculate calories, and log it automatically.
 
-## Complete Tech Stack
+<br/>
 
-* Java 21+
-* Spring Boot
-* Spring Data JPA (Hibernate)
-* Spring Security
-* JWT Authentication
-* MySQL Database
-* Maven
-* Lombok
-* MapStruct
-* Swagger / OpenAPI
-* AI Image Analysis Integration
+![Java](https://img.shields.io/badge/Java_21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=flat-square&logo=swagger&logoColor=black)
+![Maven](https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white)
 
----
+[![Architecture](https://img.shields.io/badge/Architecture-Layered_MVC-blue?style=flat-square)](https://github.com/MahmoudYoussef-web)
+[![Pattern](https://img.shields.io/badge/Pattern-Async_Processing-orange?style=flat-square)](https://github.com/MahmoudYoussef-web)
+[![AI](https://img.shields.io/badge/AI-EfficientNetB3_Food101-purple?style=flat-square)](https://github.com/MahmoudYoussef-web)
 
-## Architecture
-
-The project follows a clean layered architecture:
-
-Controller → Service → Repository → Entity
-DTOs + Mappers are used to isolate API contracts from database models.
+</div>
 
 ---
 
-## Features Summary
+## 📋 Table of Contents
 
-### Authentication
-
-* User Registration & Login
-* JWT-based Authentication
-* Secure endpoints
-
----
-
-### User Profile
-
-* Update personal data (age, weight, height, gender)
-* Calculate daily calorie needs automatically
-* Store fitness goals & activity levels
+- [Overview](#-overview)
+- [System Architecture](#-system-architecture)
+- [AI Food Scan Flow](#-ai-food-scan-flow)
+- [Features](#-features)
+- [API Reference](#-api-reference)
+- [Database Schema](#-database-schema)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Authors](#-authors)
 
 ---
 
-### Meals System
+## 🌐 Overview
 
-* Create meals (breakfast / lunch / dinner)
-* Add food items to meals
-* Update & delete meal items
-* Track calories per meal
+**CalCounter** is a health & nutrition tracking backend that solves the hardest problem in calorie tracking — making it effortless. Instead of manually searching food databases, users simply photograph their meal. An **EfficientNetB3 AI model** identifies the food, estimates its weight, and calculates calories — all asynchronously in the background.
 
----
+### What sets this apart from a typical CRUD API?
 
-### AI Food Recognition 
-
-* Upload food image
-* Analyze food using AI
-* Auto-detect:
-
-  * Food name
-  * Calories
-  * Quantity
-  * Confidence level
+| Challenge | How CalCounter solves it |
+|---|---|
+| Manual food logging is tedious | **AI Vision** — photo → food name + calories automatically |
+| AI response latency blocks the user | **Async processing** — returns immediately, frontend polls for result |
+| AI service cold-start timeouts | **Configurable RestTemplate timeout** (30s connect / 120s read) |
+| Retry on AI failure | **Retry endpoint** reads image from disk, re-sends to AI |
+| Calorie goal varies per person | **Mifflin-St Jeor formula** calculates personal daily target |
+| Tracking consistency across meals | **DailySummary auto-updated** on every meal change |
 
 ---
 
-### Food Management
+## 🏗️ System Architecture
 
-* Predefined food database
-* Search foods by name
-* Nutritional values (protein, carbs, fat)
+```mermaid
+graph TD
+    Client([Frontend App]) --> API[Spring Boot REST API :8080]
+
+    subgraph Security Layer
+        API --> JWT[JWT Auth Filter]
+        JWT --> Controllers
+    end
+
+    subgraph Business Layer
+        Controllers --> AuthService
+        Controllers --> MealService
+        Controllers --> AiService
+        Controllers --> ProfileService
+        Controllers --> DashboardService
+        Controllers --> DeficitService
+        Controllers --> BmiService
+    end
+
+    subgraph Async AI Pipeline
+        AiService -->|sync: save image + placeholder| DB[(MySQL Database)]
+        AiService -->|async @Async| VisionProvider[HuggingFace Vision Provider]
+        VisionProvider -->|POST /predict| HF[HuggingFace Space\nEfficientNetB3 Food-101]
+        HF -->|food + calories + confidence| VisionProvider
+        VisionProvider -->|update MealItem + status DONE| DB
+    end
+
+    subgraph Persistence Layer
+        MealService --> DB
+        ProfileService --> DB
+        DashboardService --> DB
+        DeficitService --> DB
+    end
+```
+
+**Communication:**
+- `───►` Synchronous (blocking REST call)
+- `- - ►` Asynchronous (Spring `@Async` background thread)
 
 ---
 
-### Daily Tracking
+## 🔄 AI Food Scan Flow
 
-* Calculate daily consumed calories
-* Compare with target calories
-* Track remaining calories
+When a user uploads a food photo, a non-blocking pipeline handles the entire analysis:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as CalCounter API
+    participant DB as MySQL
+    participant HF as HuggingFace AI
+
+    User->>API: POST /api/scan/analyze/{mealId} (image)
+    API->>DB: Save image record (status: PROCESSING)
+    API->>DB: Create placeholder MealItem
+    API-->>User: 202 Accepted { imageId, status: "processing" }
+
+    Note over API,HF: Background thread starts
+
+    API->>HF: POST /predict (multipart image)
+    HF-->>API: { top_prediction, total_kcal, mass_g, confidence }
+
+    API->>DB: Update MealItem (food, calories, quantity)
+    API->>DB: Update Image (status: DONE)
+    API->>DB: Recalculate DailySummary
+
+    loop Poll every 2s
+        User->>API: GET /api/scan/status/{imageId}
+        API-->>User: "done"
+    end
+
+    User->>API: GET /api/scan/result/{imageId}
+    API-->>User: { foodName, calories, quantity, confidence }
+```
 
 ---
 
-### Dashboard
+## ✨ Features
 
-* Daily progress
-* Weekly calories tracking
-* Progress visualization
+<details>
+<summary><strong>🔐 Authentication & Security</strong></summary>
+
+- Register & login with username or email
+- JWT-based stateless authentication
+- BCrypt password hashing
+- All endpoints protected — public only: `/auth/**`
+
+</details>
+
+<details>
+<summary><strong>👤 User Profile & Health Metrics</strong></summary>
+
+- Store age, weight, height, gender, activity level, fitness goal
+- Auto-calculate daily calorie target via **Mifflin-St Jeor** equation
+- BMI calculation with category (Normal / Overweight / Obese)
+- Calorie deficit management with projection to goal weight
+
+</details>
+
+<details>
+<summary><strong>🍽️ Meal Tracking</strong></summary>
+
+- Create meals by type: `BREAKFAST` / `LUNCH` / `DINNER`
+- Add food via AI scan or manual entry
+- Update & delete meal items — daily summary auto-recalculates
+- Query all meals by date
+
+</details>
+
+<details>
+<summary><strong>🤖 AI Food Recognition</strong></summary>
+
+- Upload food photo → async AI analysis
+- Detects: food name · calories · estimated weight · confidence score
+- Retry failed scans (re-reads image from disk)
+- Image gallery with favorite & delete support
+
+</details>
+
+<details>
+<summary><strong>📊 Dashboard & Progress</strong></summary>
+
+- Daily: consumed vs target calories, remaining, status
+- Weekly: 7-day calorie chart
+- Weight progress: current → target with percentage
+- Exercise progress: weekly workout days tracked
+
+</details>
 
 ---
 
-### Health Calculations
+## 📡 API Reference
 
-* BMI calculation
-* Calorie deficit management
+All endpoints prefixed with `/api` · Full interactive docs at `/swagger-ui/index.html`
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/register` | Create account |
+| `POST` | `/auth/login` | Login → JWT |
+| `GET` | `/profile` | Get full profile |
+| `PUT` | `/profile` | Update profile |
+| `POST` | `/meals` | Create meal |
+| `GET` | `/meals/by-date` | Get meals by date |
+| `GET` | `/meals/daily-calories` | Total calories for day |
+| `POST` | `/meals/{id}/items/manual` | Add food manually |
+| `PUT` | `/meals/items/{id}` | Update meal item |
+| `DELETE` | `/meals/items/{id}` | Delete meal item |
+| `POST` | `/scan/analyze/{mealId}` | **Upload food image → AI** |
+| `GET` | `/scan/status/{imageId}` | Poll AI status |
+| `GET` | `/scan/result/{imageId}` | Get AI result |
+| `POST` | `/scan/retry/{imageId}` | Retry failed scan |
+| `GET` | `/scan/gallery` | Browse scanned images |
+| `GET` | `/dashboard/daily` | Daily summary |
+| `GET` | `/dashboard/weekly` | Weekly chart data |
+| `GET` | `/bmi/status` | Current BMI |
+| `POST` | `/bmi/calculate` | Calculate BMI |
+| `GET` | `/deficit/projection` | Time to reach goal weight |
+| `POST` | `/workout/log` | Log exercise day |
+| `GET` | `/progress/weight` | Weight progress % |
+| `GET` | `/progress/exercise` | Exercise progress % |
 
 ---
 
-## Database Design
+## 🗄️ Database Schema
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2c4fa224-dc90-4ef3-bf22-2077c4a460c7" width="700"/>
+  <img src="https://github.com/user-attachments/assets/2c4fa224-dc90-4ef3-bf22-2077c4a460c7" width="750"/>
 </p>
 
-This diagram represents the system database including users, meals, food items, AI image processing, calorie tracking, and user health metrics.
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Language | Java 21 | Core language |
+| Framework | Spring Boot 3 | Application framework |
+| Security | Spring Security + JJWT | Stateless JWT auth |
+| Persistence | Spring Data JPA / Hibernate | ORM & DB access |
+| Database | MySQL 8 | Primary data store |
+| Async | Spring `@Async` + Thread Pool | Non-blocking AI processing |
+| AI Client | RestTemplate | HTTP calls to HuggingFace |
+| AI Model | EfficientNetB3 / Food-101 | Food classification (101 classes) |
+| Docs | SpringDoc OpenAPI 3 | Swagger UI |
+| Build | Maven | Dependency management |
+| Utilities | Lombok | Boilerplate reduction |
 
 ---
 
-## REST API Overview
+## 🚀 Getting Started
 
-All endpoints are prefixed with:
+### Prerequisites
+- Java 21+
+- MySQL 8+
+- Maven 3.8+
 
-```id="z7ldd1"
-/api
+### Setup
+
+```bash
+# 1. Clone
+git clone https://github.com/MahmoudYoussef-web/calorie-tracker-backend.git
+cd calorie-tracker-backend
+
+# 2. Create database
+mysql -u root -p -e "CREATE DATABASE Calories_Calculation_System;"
 ```
 
----
-
-### Auth
-
-* POST /auth/register
-* POST /auth/login
-
----
-
-### Profile
-
-* GET /profile
-* PUT /profile
-
----
-
-### Meals
-
-* POST /meals
-* GET /meals/{mealId}
-* GET /meals/by-date
-* GET /meals/daily-calories
-
----
-
-### Meal Items
-
-* POST /meals/{mealId}/items
-* POST /meals/{mealId}/items/manual
-* PUT /meals/items/{itemId}
-* DELETE /meals/items/{itemId}
-
----
-
-### AI Scan
-
-* POST /scan/analyze/{mealId}
-* POST /scan/retry/{imageId}
-* GET /scan/status/{imageId}
-* GET /scan/gallery
-
----
-
-### Food
-
-* GET /foods
-* GET /foods/{id}
-* GET /foods/search
-
----
-
-### Dashboard
-
-* GET /dashboard/daily
-* GET /dashboard/weekly
-
----
-
-### Health
-
-* POST /bmi/calculate
-* POST /deficit
-
----
-
-## Key Highlights
-
-* AI-powered food recognition
-* Clean architecture with DTO separation
-* JWT-based authentication
-* Real-world health tracking system
-* Scalable REST API design
-* Advanced domain modeling
-
----
-
-## How to Run
-
-1. Clone the repository
-
-2. Configure application.properties
-
-```properties id="u1k7sn"
-spring.datasource.url=jdbc:mysql://localhost:3306/calories_db
-spring.datasource.username=your_user
+```properties
+# 3. Configure src/main/resources/application.properties
+spring.datasource.url=jdbc:mysql://localhost:3306/Calories_Calculation_System
+spring.datasource.username=your_username
 spring.datasource.password=your_password
 
-spring.jpa.hibernate.ddl-auto=update
+jwt.secret=your_strong_secret_key_min_32_chars
+jwt.expiration-ms=86400000
 
-auth.jwt.secret=YOUR_SECRET
-auth.jwt.expiration=3600000
+ai.provider=huggingface
+ai.huggingface.url=https://mostafaelsayed04-food-detection.hf.space
 ```
 
-3. Run the project
-
-```bash id="iv6n8n"
+```bash
+# 4. Run
 mvn spring-boot:run
-```
 
-4. Open Swagger
-
-```id="u4pm9y"
-http://localhost:8080/swagger-ui/index.html
+# 5. Open Swagger UI
+open http://localhost:8080/swagger-ui/index.html
 ```
 
 ---
 
-## Reflection
+## 👥 Authors
 
-This project helped me:
-
-* Build an AI-integrated backend system
-* Design complex relational databases
-* Handle real-world business logic
-* Implement secure authentication
-* Work with image processing workflows
+<table>
+  <tr>
+    <td align="center" width="300">
+      <b>Mahmoud Youssef</b><br/>
+      <sub>Backend Engineer</sub><br/><br/>
+      <a href="https://github.com/MahmoudYoussef-web">
+        <img src="https://img.shields.io/badge/GitHub-MahmoudYoussef--web-181717?style=flat-square&logo=github"/>
+      </a>
+    </td>
+    <td align="center" width="300">
+      <b>Mahmoud Mohamed</b><br/>
+      <sub>AI Engineer</sub><br/><br/>
+      <a href="https://github.com/mabdelmageedali">
+        <img src="https://img.shields.io/badge/GitHub-mabdelmageedali-181717?style=flat-square&logo=github"/>
+      </a>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## Author
-
-Mahmoud
-Backend Developer (Spring Boot)
-
-=======
->>>>>>> eeae120 (feat: complete AI module + update meal, auth, and dashboard logic)
+<div align="center">
+  <sub>Built with ❤️ as a graduation project · Open to international opportunities</sub>
+</div>
