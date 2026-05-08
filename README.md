@@ -301,7 +301,7 @@ open http://localhost:8080/swagger-ui/index.html
     </td>
     <td align="center" width="300">
       <b>Mahmoud Mohamed</b><br/>
-      <sub>AI Engineer</sub><br/><br/>
+      <sub>Backend Engineer</sub><br/><br/>
       <a href="https://github.com/mabdelmageedali">
         <img src="https://img.shields.io/badge/GitHub-mabdelmageedali-181717?style=flat-square&logo=github"/>
       </a>
@@ -312,5 +312,5 @@ open http://localhost:8080/swagger-ui/index.html
 ---
 
 <div align="center">
-  <sub>Built with ❤️ as a graduation project · Open to international opportunities</sub>
+  <sub>Built  as a graduation project · Open to international opportunities</sub>
 </div>
