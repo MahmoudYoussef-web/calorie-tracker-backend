@@ -37,49 +37,39 @@ Paired with a full **Flutter mobile & web frontend** for a complete end-to-end e
 | 📄 **Swagger UI** | [/swagger-ui/index.html](https://calorie-tracker-backend-ybji.onrender.com/swagger-ui/index.html) |
 
 > ⚠️ **Free tier:** The backend is hosted on Render's free tier — the first request may take **~30 seconds** to wake the instance. Wait a moment, then refresh Swagger UI.
-
 ---
 
 ## 📸 App Screenshots
 
-# 🌐 Web Interface
+### 🌐 Web Interface
 
-### Authentication
+#### Authentication
 
 | Login | Register |
 |---|---|
 | ![](assets/screenshots/login-page.png) | ![](assets/screenshots/register-page.png) |
 
-### Health Tracking
+#### Health Tracking
 
 | BMI Calculator | BMI Result |
 |---|---|
 | ![](assets/screenshots/bmi-page.png) | ![](assets/screenshots/bmi-result-page.png) |
 
-### Deficit Calculator
+#### Deficit Calculator
 
 ![](assets/screenshots/deficit-page.png)
 
-### User Profile
+#### User Profile
 
 ![](assets/screenshots/profile-page.png)
 
 ---
 
-# 📱 Mobile Interface
+### 📱 Mobile Interface
 
 | Home | Scan Result | User Info |
 |---|---|---|
 | ![](assets/screenshots/home-page.png) | ![](assets/screenshots/scan-result-page.png) | ![](assets/screenshots/user-info-page.png) |
-
-<details>
-<summary>📱 View Mobile UI Screenshots</summary>
-
-| Home Page | Scan Result | User Info |
-|---|---|---|
-| Upload a food photo and view recent scans | AI identifies the food with macros breakdown | Enter your health data for personalized targets |
-
-</details>
 
 ---
 
