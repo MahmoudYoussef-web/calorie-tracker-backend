@@ -36,7 +36,50 @@ Paired with a full **Flutter mobile & web frontend** for a complete end-to-end e
 | 🔌 **Backend API (Render)** | [calorie-tracker-backend-ybji.onrender.com](https://calorie-tracker-backend-ybji.onrender.com) |
 | 📄 **Swagger UI** | [/swagger-ui/index.html](https://calorie-tracker-backend-ybji.onrender.com/swagger-ui/index.html) |
 
-> ⚠️ The backend is hosted on Render's free tier — the first request may take ~30s to wake the instance.
+> ⚠️ **Free tier:** The backend is hosted on Render's free tier — the first request may take **~30 seconds** to wake the instance. Wait a moment, then refresh Swagger UI.
+
+---
+
+## 📸 App Screenshots
+
+# 🌐 Web Interface
+
+### Authentication
+
+| Login | Register |
+|---|---|
+| ![](assets/screenshots/login-page.png) | ![](assets/screenshots/register-page.png) |
+
+### Health Tracking
+
+| BMI Calculator | BMI Result |
+|---|---|
+| ![](assets/screenshots/bmi-page.png) | ![](assets/screenshots/bmi-result-page.png) |
+
+### Deficit Calculator
+
+![](assets/screenshots/deficit-page.png)
+
+### User Profile
+
+![](assets/screenshots/profile-page.png)
+
+---
+
+# 📱 Mobile Interface
+
+| Home | Scan Result | User Info |
+|---|---|---|
+| ![](assets/screenshots/home-page.png) | ![](assets/screenshots/scan-result-page.png) | ![](assets/screenshots/user-info-page.png) |
+
+<details>
+<summary>📱 View Mobile UI Screenshots</summary>
+
+| Home Page | Scan Result | User Info |
+|---|---|---|
+| Upload a food photo and view recent scans | AI identifies the food with macros breakdown | Enter your health data for personalized targets |
+
+</details>
 
 ---
 
@@ -49,6 +92,7 @@ Paired with a full **Flutter mobile & web frontend** for a complete end-to-end e
 - [API Reference](#-api-reference)
 - [Database Schema](#-database-schema)
 - [Tech Stack](#-tech-stack)
+- [Known Limitations](#-known-limitations)
 - [Getting Started](#-getting-started)
 - [Authors](#-authors)
 
@@ -56,7 +100,7 @@ Paired with a full **Flutter mobile & web frontend** for a complete end-to-end e
 
 ## 🌐 Overview
 
-**CalCounter** is a full-stack health & nutrition tracking application that solves the hardest problem in calorie tracking — making it effortless. Instead of manually searching food databases, users simply photograph their meal. An **EfficientNetB3 AI model** identifies the food, estimates its weight, and calculates calories — all asynchronously in the background. A **Flutter frontend** (web + mobile) consumes this API and delivers the full experience to end users.
+**CalCounter** is a full-stack health & nutrition tracking application that solves the hardest problem in calorie tracking — making it effortless. Instead of manually searching food databases, users simply photograph their meal. An **EfficientNetB3 AI model** (hosted on HuggingFace) identifies the food, estimates its weight, and calculates calories — all asynchronously in the background. A **Flutter frontend** (web + mobile) consumes this API and delivers the full experience to end users.
 
 ### What sets this apart from a typical CRUD API?
 
@@ -153,55 +197,40 @@ sequenceDiagram
 
 ## ✨ Features
 
-<details>
-<summary><strong>🔐 Authentication & Security</strong></summary>
+### 🔐 Authentication & Security
 
 - Register & login with username or email
 - JWT-based stateless authentication
 - BCrypt password hashing
 - All endpoints protected — public only: `/auth/**`
 
-</details>
-
-<details>
-<summary><strong>👤 User Profile & Health Metrics</strong></summary>
+### 👤 User Profile & Health Metrics
 
 - Store age, weight, height, gender, activity level, fitness goal
 - Auto-calculate daily calorie target via **Mifflin-St Jeor** equation
 - BMI calculation with category (Normal / Overweight / Obese)
 - Calorie deficit management with projection to goal weight
 
-</details>
-
-<details>
-<summary><strong>🍽️ Meal Tracking</strong></summary>
+### 🍽️ Meal Tracking
 
 - Create meals by type: `BREAKFAST` / `LUNCH` / `DINNER`
 - Add food via AI scan or manual entry
 - Update & delete meal items — daily summary auto-recalculates
 - Query all meals by date
 
-</details>
-
-<details>
-<summary><strong>🤖 AI Food Recognition</strong></summary>
+### 🤖 AI Food Recognition
 
 - Upload food photo → async AI analysis
 - Detects: food name · calories · estimated weight · confidence score
 - Retry failed scans (re-reads image from disk)
 - Image gallery with favorite & delete support
 
-</details>
-
-<details>
-<summary><strong>📊 Dashboard & Progress</strong></summary>
+### 📊 Dashboard & Progress
 
 - Daily: consumed vs target calories, remaining, status
 - Weekly: 7-day calorie chart
 - Weight progress: current → target with percentage
 - Exercise progress: weekly workout days tracked
-
-</details>
 
 ---
 
@@ -256,13 +285,25 @@ All endpoints prefixed with `/api` · Full interactive docs at `/swagger-ui/inde
 | Database | MySQL 8 | Primary data store |
 | Async | Spring `@Async` + Thread Pool | Non-blocking AI processing |
 | AI Client | RestTemplate | HTTP calls to HuggingFace |
-| AI Model | EfficientNetB3 / Food-101 | Food classification (101 classes) |
+| AI Model | EfficientNetB3 / Food-101 (HuggingFace Space) | Food classification — 101 classes |
 | Docs | SpringDoc OpenAPI 3 | Swagger UI |
 | Build | Maven | Dependency management |
 | Utilities | Lombok | Boilerplate reduction |
 | **Frontend** | **Flutter** | **Cross-platform web & mobile UI** |
 | **Hosting (FE)** | **Firebase Hosting** | **Flutter web deployment** |
 | **Hosting (BE)** | **Render** | **Backend deployment** |
+
+---
+
+## ⚠️ Known Limitations
+
+| Limitation | Detail |
+|---|---|
+| AI cold start | HuggingFace free tier may take 20–60s to wake on first request |
+| Food-101 scope | AI model covers 101 food classes only — uncommon foods may not be recognized |
+| Render free tier | Backend spins down after inactivity; first request has ~30s delay |
+| Image storage | Food images stored on server disk — not persisted across Render redeploys |
+| No refresh tokens | JWT expiry requires re-login; refresh token flow not yet implemented |
 
 ---
 
@@ -317,6 +358,10 @@ open http://localhost:8080/swagger-ui/index.html
       <a href="https://github.com/MahmoudYoussef-web">
         <img src="https://img.shields.io/badge/GitHub-MahmoudYoussef--web-181717?style=flat-square&logo=github"/>
       </a>
+      <br/>
+      <a href="https://www.linkedin.com/in/mahmoud-youssef-dev/">
+        <img src="https://img.shields.io/badge/LinkedIn-mahmoud--youssef--dev-0A66C2?style=flat-square&logo=linkedin&logoColor=white"/>
+      </a>
     </td>
     <td align="center" width="300">
       <b>Mahmoud Mohamed</b><br/>
@@ -331,5 +376,5 @@ open http://localhost:8080/swagger-ui/index.html
 ---
 
 <div align="center">
-  <sub>Built as a graduation project · Open to international opportunities</sub>
+  <sub>Graduation Project — El Shorouk Academy, 2026 · Open to remote & international opportunities</sub>
 </div>
