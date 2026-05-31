@@ -167,10 +167,11 @@ sequenceDiagram
 
     Note over API,HF: Background thread starts
 
-    API->>HF: POST /predict (multipart image)
-    HF-->>API: { top_prediction, total_kcal, mass_g, confidence }
+    API->>HF: POST /predict/multi (multipart image)
+    HF-->>API: { items: [pizza, chocolate_mousse, ...], total_kcal }
 
-    API->>DB: Update MealItem (food, calories, quantity)
+    API->>DB: Update placeholder MealItem (first food)
+    API->>DB: Create new MealItem for each extra food
     API->>DB: Update Image (status: DONE)
     API->>DB: Recalculate DailySummary
 
@@ -179,8 +180,8 @@ sequenceDiagram
         API-->>User: "done"
     end
 
-    User->>API: GET /api/scan/result/{imageId}
-    API-->>User: { foodName, calories, quantity, confidence }
+    User->>API: GET /api/meals/{mealId}
+    API-->>User: [ { foodName, calories, quantity }, ... ]
 ```
 
 ---
@@ -294,6 +295,8 @@ All endpoints prefixed with `/api` · Full interactive docs at `/swagger-ui/inde
 | Render free tier | Backend spins down after inactivity; first request has ~30s delay |
 | Image storage | Food images stored on server disk — not persisted across Render redeploys |
 | No refresh tokens | JWT expiry requires re-login; refresh token flow not yet implemented |
+| Multi-food scan | Returns all detected items per image — 
+  frontend should use GET /meals/{mealId} to display full results |
 
 ---
 
