@@ -1,5 +1,6 @@
 package com.caloriestracker.system.service.ai.provider;
 
+import com.caloriestracker.system.service.ai.client.AiMultiResult;
 import com.caloriestracker.system.service.ai.client.AiResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -97,6 +100,65 @@ public class HuggingFaceVisionProvider implements AiVisionProvider {
                     "AI analysis failed: " + e.getMessage(),
                     e
             );
+        }
+    }
+    @Override
+    public AiMultiResult analyzeMulti(MultipartFile file) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            ByteArrayResource imageResource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename() != null
+                            ? file.getOriginalFilename() : "image.jpg";
+                }
+            };
+
+            body.add("file", imageResource);
+            body.add("ref_px", "80");
+            body.add("height_ratio", "0.3");
+            body.add("min_confidence", "0.3");
+            body.add("max_items", "5");
+
+            HttpEntity<MultiValueMap<String, Object>> request =
+                    new HttpEntity<>(body, headers);
+
+            String endpoint = huggingFaceUrl + "/predict/multi";
+            log.info("Calling multi food detection: {}", endpoint);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    endpoint, HttpMethod.POST, request, String.class);
+
+            return parseMultiResponse(response.getBody());
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to process image file", e);
+        }
+    }
+
+    private AiMultiResult parseMultiResponse(String responseBody) {
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode items = root.path("items");
+
+            List<AiResult> results = new ArrayList<>();
+            for (JsonNode item : items) {
+                String name = item.path("name").asText();
+                double confidence = item.path("confidence").asDouble(0.0);
+                JsonNode nutrition = item.path("nutrition");
+                double calories = nutrition.path("total_kcal").asDouble(0.0);
+                double quantity = nutrition.path("mass_g").asDouble(1.0);
+
+                results.add(new AiResult(name, calories, quantity, confidence));
+            }
+
+            return new AiMultiResult(results);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not parse multi AI response", e);
         }
     }
 

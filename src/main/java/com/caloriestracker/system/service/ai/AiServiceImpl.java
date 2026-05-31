@@ -6,11 +6,13 @@ import com.caloriestracker.system.enums.ImageStatus;
 import com.caloriestracker.system.exception.BadRequestException;
 import com.caloriestracker.system.exception.ResourceNotFoundException;
 import com.caloriestracker.system.repository.*;
+import com.caloriestracker.system.service.ai.client.AiMultiResult;
 import com.caloriestracker.system.service.ai.client.AiResult;
 import com.caloriestracker.system.service.ai.provider.AiVisionProvider;
 
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,7 +23,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.util.stream.Stream;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiServiceImpl implements AiService {
@@ -111,48 +113,59 @@ public class AiServiceImpl implements AiService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processAsync(Long imageId, MultipartFile file) {
 
-        Image image = imageRepo.findById(imageId)
-                .orElseThrow();
-
-        MealItem item = image.getMealItem();
+        Image image = imageRepo.findById(imageId).orElseThrow();
+        MealItem placeholderItem = image.getMealItem();
+        Meal meal = placeholderItem.getMeal();
 
         try {
+            AiMultiResult multiResult = visionProvider.analyzeMulti(file);
 
-            AiResult result = visionProvider.analyze(file);
-
-            if (result.getName() == null || result.getName().isBlank()
-                    || result.getName().equalsIgnoreCase(PROCESSING_FOOD_NAME)) {
-                throw new RuntimeException("AI returned invalid food name");
+            if (multiResult.getItems() == null || multiResult.getItems().isEmpty()) {
+                throw new RuntimeException("AI returned no items");
             }
 
-            Food food = foodRepo.findByNameIgnoreCase(result.getName())
-                    .orElseGet(() ->
-                            foodRepo.save(
-                                    Food.builder()
-                                            .name(result.getName())
-                                            .calories(result.getCalories())
-                                            .protein(0.0)
-                                            .carbs(0.0)
-                                            .fat(0.0)
-                                            .build()
-                            )
-                    );
+            boolean isFirst = true;
+            for (AiResult result : multiResult.getItems()) {
 
-            item.setFood(food);
-            item.setQuantity(result.getQuantity() > 0 ? result.getQuantity() : 1.0);
-            item.setCaloriesAtTime(result.getCalories());
-            item.setProteinAtTime(food.getProtein());
-            item.setCarbsAtTime(food.getCarbs());
-            item.setFatAtTime(food.getFat());
-            item.setConfidence(result.getConfidence());
+                Food food = foodRepo.findByNameIgnoreCase(result.getName())
+                        .orElseGet(() -> foodRepo.save(
+                                Food.builder()
+                                        .name(result.getName())
+                                        .calories(result.getCalories())
+                                        .protein(0.0).carbs(0.0).fat(0.0)
+                                        .build()
+                        ));
 
-            itemRepo.save(item);
+                if (isFirst) {
 
-            updateSummary(item.getMeal());
+                    placeholderItem.setFood(food);
+                    placeholderItem.setQuantity(result.getQuantity() > 0 ? result.getQuantity() : 1.0);
+                    placeholderItem.setCaloriesAtTime(result.getCalories());
+                    placeholderItem.setConfidence(result.getConfidence());
+                    itemRepo.save(placeholderItem);
+                    isFirst = false;
+                } else {
 
+                    MealItem newItem = MealItem.builder()
+                            .meal(meal)
+                            .image(image)
+                            .food(food)
+                            .quantity(result.getQuantity() > 0 ? result.getQuantity() : 1.0)
+                            .caloriesAtTime(result.getCalories())
+                            .proteinAtTime(0.0)
+                            .carbsAtTime(0.0)
+                            .fatAtTime(0.0)
+                            .confidence(result.getConfidence())
+                            .build();
+                    itemRepo.save(newItem);
+                }
+            }
+
+            updateSummary(meal);
             image.setStatus(ImageStatus.DONE);
 
         } catch (Exception e) {
+            log.error("AI processing failed: {}", e.getMessage());
             image.setStatus(ImageStatus.FAILED);
         }
 
