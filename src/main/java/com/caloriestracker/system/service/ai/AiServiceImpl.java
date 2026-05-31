@@ -145,10 +145,9 @@ public class AiServiceImpl implements AiService {
                     itemRepo.save(placeholderItem);
                     isFirst = false;
                 } else {
-
                     MealItem newItem = MealItem.builder()
                             .meal(meal)
-                            .image(image)
+                            .image(null)
                             .food(food)
                             .quantity(result.getQuantity() > 0 ? result.getQuantity() : 1.0)
                             .caloriesAtTime(result.getCalories())

@@ -7,5 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface AiVisionProvider {
 
     AiResult analyze(MultipartFile file);
+
     AiMultiResult analyzeMulti(MultipartFile file);
 }
