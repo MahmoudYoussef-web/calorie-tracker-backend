@@ -120,7 +120,7 @@ public class HuggingFaceVisionProvider implements AiVisionProvider {
             body.add("file", imageResource);
             body.add("ref_px", "80");
             body.add("height_ratio", "0.3");
-            body.add("min_confidence", "0.3");
+            body.add("min_confidence", "0.7");
             body.add("max_items", "5");
 
             HttpEntity<MultiValueMap<String, Object>> request =
